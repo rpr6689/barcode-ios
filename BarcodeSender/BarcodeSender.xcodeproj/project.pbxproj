@@ -24,6 +24,7 @@
 		68CD5B53287DEDFA00C56615 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		68CD5B56287DEDFA00C56615 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		68CD5B58287DEDFA00C56615 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		68CD5B62287F2C9500C56615 /* BarcodeSender.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BarcodeSender.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +57,7 @@
 		68CD5B49287DEDF900C56615 /* BarcodeSender */ = {
 			isa = PBXGroup;
 			children = (
+				68CD5B62287F2C9500C56615 /* BarcodeSender.entitlements */,
 				68CD5B4A287DEDF900C56615 /* AppDelegate.swift */,
 				68CD5B4C287DEDF900C56615 /* SceneDelegate.swift */,
 				68CD5B4E287DEDF900C56615 /* ViewController.swift */,
@@ -285,6 +287,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = BarcodeSender/BarcodeSender.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 889TX26285;
@@ -314,6 +317,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = BarcodeSender/BarcodeSender.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 889TX26285;

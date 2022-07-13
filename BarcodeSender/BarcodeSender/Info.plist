@@ -22,6 +22,8 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>We need your camera to scan</string>
+	<string>Scan barcodes</string>
+    <key>NFCReaderUsageDescription</key>
+    <string>Scan NFC tags</string>
 </dict>
 </plist>

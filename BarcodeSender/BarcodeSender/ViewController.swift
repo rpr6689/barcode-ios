@@ -5,24 +5,31 @@
 //  Created by Casey Perkins on 7/12/22.
 //
 
+import CoreNFC
 import UIKit
 import SwiftUI
 import Network
 import AVFoundation
 
+
 class ViewController: UIViewController {
-    
     
     @IBOutlet weak var connectButton: UIButton!
     @IBOutlet weak var scanButton: UIButton!
     @IBOutlet weak var disconnectButton: UIButton!
     
+    var detectedMessages = [NFCNDEFMessage]()
+    var session: NFCNDEFReaderSession?
+    
     var captureSession: AVCaptureSession!
     var previewLayer: AVCaptureVideoPreviewLayer!
     
     var connection: NWConnection?
-    var hostUDP: NWEndpoint.Host = "192.168.1.37"
+    var hostUDP: NWEndpoint.Host?
+    //var hostUDP: NWEndpoint.Host? = "172.19.110.189"
     var portUDP: NWEndpoint.Port = 4445
+    
+    var servers = ["server1": "172.19.110.189", "server2": "172.19.110.189"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,10 +43,18 @@ class ViewController: UIViewController {
     
     @IBAction func onConnectClick(_ sender: Any) {
         //TODO: handle nfc, set host, then enable scanning
+        beginScanning()
+
+        /*
+        guard let hostUDP = hostUDP else {
+            print("NO HOST!")
+            return
+        }
         connectToUDP(hostUDP, portUDP)
         self.connectButton.isEnabled = false
         self.scanButton.isEnabled = true
         self.disconnectButton.isEnabled = true
+         */
     }
     
     @IBAction func onScanClick(_ sender: Any) {
@@ -47,6 +62,8 @@ class ViewController: UIViewController {
     }
     
     @IBAction func onDisconnectClick(_ sender: Any) {
+        endScanning()
+        hostUDP = nil
         self.connectButton.isEnabled = true
         self.scanButton.isEnabled = false
         self.disconnectButton.isEnabled = false
@@ -54,6 +71,10 @@ class ViewController: UIViewController {
     }
     
     func connectToUDP(_ hostUDP: NWEndpoint.Host, _ portUDP: NWEndpoint.Port) {
+        
+        self.connectButton.isEnabled = false
+        self.scanButton.isEnabled = true
+        self.disconnectButton.isEnabled = true
 
         self.connection = NWConnection(host: hostUDP, port: portUDP, using: .udp)
 
@@ -101,6 +122,161 @@ class ViewController: UIViewController {
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
+}
+
+
+extension ViewController: NFCNDEFReaderSessionDelegate {
+    
+    func receiveScanResults(text: String) {
+        print("TEXT: \(text)")
+        //let index = text.index(text.startIndex, offsetBy: 2)
+        if let index = text.firstIndex(of: "s") {
+            let serverName = String(text.suffix(from: index))
+            print("SERVER NAME: \(serverName)")
+            if let server = servers[serverName] {
+                print("SERVER: \(server)")
+                hostUDP = .init(server)
+                if let hostUDP = hostUDP {
+                    endScanning()
+                    connectToUDP(hostUDP, portUDP)
+                }
+            }
+        }
+        print("SCAN \(hostUDP)")
+    }
+    
+    @IBAction func beginScanning() {
+        guard NFCNDEFReaderSession.readingAvailable else {
+            let alertController = UIAlertController(
+                title: "Scanning Not Supported",
+                message: "This device doesn't support tag scanning.",
+                preferredStyle: .alert
+            )
+            alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            self.present(alertController, animated: true, completion: nil)
+            return
+        }
+
+        session = NFCNDEFReaderSession(delegate: self, queue: nil, invalidateAfterFirstRead: false)
+        session?.alertMessage = "Hold your iPhone near the item to learn more about it."
+        session?.begin()
+    }
+
+    
+    // MARK: - NFCNDEFReaderSessionDelegate
+
+    /// - Tag: processingTagData
+    func readerSession(_ session: NFCNDEFReaderSession, didDetectNDEFs messages: [NFCNDEFMessage]) {
+    }
+
+    
+    /// - Tag: processingNDEFTag
+    func readerSession(_ session: NFCNDEFReaderSession, didDetect tags: [NFCNDEFTag]) {
+        if tags.count > 1 {
+            // Restart polling in 500ms
+            let retryInterval = DispatchTimeInterval.milliseconds(500)
+            session.alertMessage = "More than 1 tag is detected, please remove all tags and try again."
+            DispatchQueue.global().asyncAfter(deadline: .now() + retryInterval, execute: {
+                session.restartPolling()
+            })
+            return
+        }
+        
+        // Connect to the found tag and perform NDEF message reading
+        let tag = tags.first!
+        session.connect(to: tag, completionHandler: { (error: Error?) in
+            if nil != error {
+                session.alertMessage = "Unable to connect to tag."
+                session.invalidate()
+                return
+            }
+            
+            tag.queryNDEFStatus(completionHandler: { (ndefStatus: NFCNDEFStatus, capacity: Int, error: Error?) in
+                if .notSupported == ndefStatus {
+                    session.alertMessage = "Tag is not NDEF compliant"
+                    session.invalidate()
+                    return
+                } else if nil != error {
+                    session.alertMessage = "Unable to query NDEF status of tag"
+                    session.invalidate()
+                    return
+                }
+                
+                tag.readNDEF(completionHandler: { (message: NFCNDEFMessage?, error: Error?) in
+                    var statusMessage: String
+                    if nil != error || nil == message {
+                        statusMessage = "Fail to read NDEF from tag \(error)"
+                    }
+                    else {
+                        statusMessage = "Scanned NFC tag"
+                        DispatchQueue.main.async {
+                            // Process detected NFCNDEFMessage objects.
+                            ///self.detectedMessages.append(message!)
+                            
+                            if let message = message {
+                                let record = message.records[0]
+                                print("\t\t\tidentifier: \(String(data: record.identifier, encoding: .utf8))")
+                                print("\t\t\ttype: \(String(data: record.type, encoding: .utf8))")
+                                let text = String(data: record.payload, encoding: .ascii)!
+                                self.receiveScanResults(text: text)
+                            }
+                            
+                        }
+                    }
+                    
+                    session.alertMessage = statusMessage
+                    session.invalidate()
+                })
+            })
+        })
+    }
+    
+    
+    func endScanning() {
+        session?.invalidate()
+    }
+    
+    /// - Tag: sessionBecomeActive
+    func readerSessionDidBecomeActive(_ session: NFCNDEFReaderSession) {
+        
+    }
+    
+    /// - Tag: endScanning
+    func readerSession(_ session: NFCNDEFReaderSession, didInvalidateWithError error: Error) {
+        // Check the invalidation reason from the returned error.
+        if let readerError = error as? NFCReaderError {
+            // Show an alert when the invalidation reason is not because of a
+            // successful read during a single-tag read session, or because the
+            // user canceled a multiple-tag read session from the UI or
+            // programmatically using the invalidate method call.
+            if (readerError.code != .readerSessionInvalidationErrorFirstNDEFTagRead)
+                && (readerError.code != .readerSessionInvalidationErrorUserCanceled) {
+                let alertController = UIAlertController(
+                    title: "Session Invalidated",
+                    message: error.localizedDescription,
+                    preferredStyle: .alert
+                )
+                alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                DispatchQueue.main.async {
+                    self.present(alertController, animated: true, completion: nil)
+                }
+            }
+        }
+
+        // To read new tags, a new session instance is required.
+        self.session = nil
+    }
+
+    // MARK: - addMessage(fromUserActivity:)
+
+    func addMessage(fromUserActivity message: NFCNDEFMessage) {
+        /*
+        DispatchQueue.main.async {
+            self.detectedMessages.append(message)
+        }
+         */
+    }
+    
 }
 
 extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
