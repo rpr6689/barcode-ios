@@ -16,7 +16,6 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var connectButton: UIButton!
     @IBOutlet weak var scanButton: UIButton!
-    @IBOutlet weak var disconnectButton: UIButton!
     
     var detectedMessages = [NFCNDEFMessage]()
     var session: NFCNDEFReaderSession?
@@ -33,6 +32,19 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        let blue = UIColor(red: 0.012, green: 0.09, blue: 0.243, alpha: 1.0)
+        
+        connectButton.layer.borderWidth = 2
+        connectButton.layer.cornerRadius = 20
+        connectButton.layer.borderColor = blue.cgColor
+        
+        scanButton.layer.borderWidth = 2
+        scanButton.layer.cornerRadius = 20
+        scanButton.layer.masksToBounds = true
+        scanButton.setTitleColor(UIColor.white, for: .disabled)
+        scanButton.isEnabled = false
+        
         // Do any additional setup after loading the view.
         var x = 0
         while(x < 1000000000) {
@@ -41,40 +53,33 @@ class ViewController: UIViewController {
     }
 
     
-    @IBAction func onConnectClick(_ sender: Any) {
-        //TODO: handle nfc, set host, then enable scanning
-        beginScanning()
-
-        /*
-        guard let hostUDP = hostUDP else {
-            print("NO HOST!")
-            return
+    @IBAction func onConnectClick(_ sender: UIButton) {
+        sender.isSelected = !sender.isSelected
+        if sender.isSelected {
+            sender.setTitle("Connect to Workstation", for: .normal)
+            onDisconnect()
         }
-        connectToUDP(hostUDP, portUDP)
-        self.connectButton.isEnabled = false
-        self.scanButton.isEnabled = true
-        self.disconnectButton.isEnabled = true
-         */
+        else {
+            sender.setTitle("Disconnect from Workstation", for: .normal)
+            beginScanning()
+        }
     }
     
     @IBAction func onScanClick(_ sender: Any) {
         requestScanner()
     }
     
-    @IBAction func onDisconnectClick(_ sender: Any) {
+    func onDisconnect() {
         endScanning()
         hostUDP = nil
         self.connectButton.isEnabled = true
         self.scanButton.isEnabled = false
-        self.disconnectButton.isEnabled = false
         self.connection?.cancel()
     }
     
     func connectToUDP(_ hostUDP: NWEndpoint.Host, _ portUDP: NWEndpoint.Port) {
         
-        self.connectButton.isEnabled = false
         self.scanButton.isEnabled = true
-        self.disconnectButton.isEnabled = true
 
         self.connection = NWConnection(host: hostUDP, port: portUDP, using: .udp)
 
