@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SwiftUI
 import Network
 import AVFoundation
 
@@ -164,8 +165,31 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
         previewLayer.frame = view.layer.bounds
         previewLayer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer)
+        
+        let cancelButton = UIButton(frame: CGRect(x: 0, y: 0, width: 100 , height: 100))
+        cancelButton.backgroundColor = UIColor.clear
+        cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.setTitleColor(UIColor.red, for: .normal)
+        cancelButton.tag = 704
+        cancelButton.addTarget(self, action: #selector(cancelPressed), for: .touchUpInside)
+        
+        view.addSubview(cancelButton)
 
         captureSession.startRunning()
+    }
+    
+    @objc func cancelPressed() {
+        captureSession.stopRunning()
+        clearScannerView()
+    }
+    
+    func clearScannerView() {
+        self.view.layer.sublayers = self.view.layer.sublayers?.filter { theLayer in
+            !theLayer.isKind(of: AVCaptureVideoPreviewLayer.classForCoder())
+        }
+        if let viewWithTag = self.view.viewWithTag(704) {
+            viewWithTag.removeFromSuperview()
+        }
     }
     
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
@@ -179,9 +203,7 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
             found(code: stringValue)
         }
 
-        self.view.layer.sublayers = self.view.layer.sublayers?.filter { theLayer in
-            !theLayer.isKind(of: AVCaptureVideoPreviewLayer.classForCoder())
-        }
+        clearScannerView()
     }
 
     func found(code: String) {
