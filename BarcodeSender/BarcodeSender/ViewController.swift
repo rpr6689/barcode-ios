@@ -104,25 +104,28 @@ class ViewController: UIViewController {
 extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
     
     func requestScanner() {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-            case .authorized: // The user has previously granted access to the camera.
-                self.initializeScanner()
-            
-            case .notDetermined: // The user has not yet been asked for camera access.
-                AVCaptureDevice.requestAccess(for: .video) { granted in
-                    if granted {
-                        self.initializeScanner()
+        DispatchQueue.main.async {
+            switch AVCaptureDevice.authorizationStatus(for: .video) {
+                case .authorized: // The user has previously granted access to the camera.
+                    self.initializeScanner()
+                
+                case .notDetermined: // The user has not yet been asked for camera access.
+                    AVCaptureDevice.requestAccess(for: .video) { granted in
+                        if granted {
+                            self.initializeScanner()
+                        }
                     }
-                }
-            
-            case .denied: // The user has previously denied access.
-                return
+                
+                case .denied: // The user has previously denied access.
+                    return
 
-            case .restricted: // The user can't grant access due to restrictions.
-                return
-            @unknown default:
-                return
+                case .restricted: // The user can't grant access due to restrictions.
+                    return
+                @unknown default:
+                    return
+            }
         }
+        
     }
     
     func initializeScanner() {
@@ -150,7 +153,7 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
             captureSession.addOutput(metadataOutput)
 
             metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-            metadataOutput.metadataObjectTypes = [.ean8, .ean13, .pdf417]
+            metadataOutput.metadataObjectTypes = [.code128, .ean8, .ean13,]
         } else {
             failed()
             return
@@ -170,11 +173,14 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
         if let metadataObject = metadataObjects.first {
             guard let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject else { return }
             guard let stringValue = readableObject.stringValue else { return }
+            AudioServicesPlaySystemSound(1103)
             AudioServicesPlaySystemSound(SystemSoundID(kSystemSoundID_Vibrate))
             found(code: stringValue)
         }
 
-        dismiss(animated: true)
+        self.view.layer.sublayers = self.view.layer.sublayers?.filter { theLayer in
+            !theLayer.isKind(of: AVCaptureVideoPreviewLayer.classForCoder())
+        }
     }
 
     func found(code: String) {
