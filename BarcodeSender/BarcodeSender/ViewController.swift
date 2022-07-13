@@ -21,8 +21,11 @@ class ViewController: UIViewController {
     var detectedMessages = [NFCNDEFMessage]()
     var session: NFCNDEFReaderSession?
     
-    var captureSession: AVCaptureSession!
+    var captureSession: AVCaptureSession?
     var previewLayer: AVCaptureVideoPreviewLayer!
+    
+    var timer: Timer?
+    var idleThreshold = 120.0 //2 minutes
     
     var connection: NWConnection?
     var hostUDP: NWEndpoint.Host?
@@ -38,6 +41,19 @@ class ViewController: UIViewController {
         while(x < 1000000000) {
             x += 1
         }
+    }
+    
+    func startTimer() {
+        timer = Timer.scheduledTimer(timeInterval: idleThreshold, target: self, selector: #selector(onIdleTimeout), userInfo: nil, repeats: true)
+    }
+    
+    @objc func onIdleTimeout() {
+        self.connectButton.isEnabled = true
+        self.scanButton.isEnabled = false
+        self.disconnectButton.isEnabled = false
+        self.connection?.cancel()
+        self.cancelPressed()
+        timer?.invalidate()
     }
 
     
@@ -58,6 +74,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func onScanClick(_ sender: Any) {
+        startTimer()
         requestScanner()
     }
     
@@ -138,6 +155,7 @@ extension ViewController: NFCNDEFReaderSessionDelegate {
                 hostUDP = .init(server)
                 if let hostUDP = hostUDP {
                     endScanning()
+                    startTimer()
                     connectToUDP(hostUDP, portUDP)
                 }
             }
@@ -308,6 +326,8 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
     
     func initializeScanner() {
         captureSession = AVCaptureSession()
+        
+        guard let session = captureSession else { return }
 
         guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else { return }
         let videoInput: AVCaptureDeviceInput
@@ -318,8 +338,8 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
             return
         }
 
-        if (captureSession.canAddInput(videoInput)) {
-            captureSession.addInput(videoInput)
+        if (session.canAddInput(videoInput)) {
+            session.addInput(videoInput)
         } else {
             failed()
             return
@@ -327,8 +347,8 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
 
         let metadataOutput = AVCaptureMetadataOutput()
 
-        if (captureSession.canAddOutput(metadataOutput)) {
-            captureSession.addOutput(metadataOutput)
+        if (session.canAddOutput(metadataOutput)) {
+            session.addOutput(metadataOutput)
 
             metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
             metadataOutput.metadataObjectTypes = [.code128, .ean8, .ean13,]
@@ -337,7 +357,7 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
             return
         }
 
-        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+        previewLayer = AVCaptureVideoPreviewLayer(session: session)
         previewLayer.frame = view.layer.bounds
         previewLayer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer)
@@ -351,11 +371,11 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
         
         view.addSubview(cancelButton)
 
-        captureSession.startRunning()
+        session.startRunning()
     }
     
     @objc func cancelPressed() {
-        captureSession.stopRunning()
+        captureSession?.stopRunning()
         clearScannerView()
     }
     
@@ -369,7 +389,7 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
     }
     
     func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
-        captureSession.stopRunning()
+        captureSession?.stopRunning()
 
         if let metadataObject = metadataObjects.first {
             guard let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject else { return }
