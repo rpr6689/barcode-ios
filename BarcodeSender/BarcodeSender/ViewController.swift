@@ -18,7 +18,6 @@ class ViewController: UIViewController {
     @IBOutlet weak var scanButton: UIButton!
     @IBOutlet weak var disconnectButton: UIButton!
     
-    var detectedMessages = [NFCNDEFMessage]()
     var session: NFCNDEFReaderSession?
     
     var captureSession: AVCaptureSession!
@@ -26,7 +25,6 @@ class ViewController: UIViewController {
     
     var connection: NWConnection?
     var hostUDP: NWEndpoint.Host?
-    //var hostUDP: NWEndpoint.Host? = "172.19.110.189"
     var portUDP: NWEndpoint.Port = 4445
     
     var servers = ["server1": "172.19.110.189", "server2": "172.19.110.189"]
@@ -45,16 +43,6 @@ class ViewController: UIViewController {
         //TODO: handle nfc, set host, then enable scanning
         beginScanning()
 
-        /*
-        guard let hostUDP = hostUDP else {
-            print("NO HOST!")
-            return
-        }
-        connectToUDP(hostUDP, portUDP)
-        self.connectButton.isEnabled = false
-        self.scanButton.isEnabled = true
-        self.disconnectButton.isEnabled = true
-         */
     }
     
     @IBAction func onScanClick(_ sender: Any) {
@@ -129,7 +117,6 @@ extension ViewController: NFCNDEFReaderSessionDelegate {
     
     func receiveScanResults(text: String) {
         print("TEXT: \(text)")
-        //let index = text.index(text.startIndex, offsetBy: 2)
         if let index = text.firstIndex(of: "s") {
             let serverName = String(text.suffix(from: index))
             print("SERVER NAME: \(serverName)")
@@ -211,8 +198,6 @@ extension ViewController: NFCNDEFReaderSessionDelegate {
                         statusMessage = "Scanned NFC tag"
                         DispatchQueue.main.async {
                             // Process detected NFCNDEFMessage objects.
-                            ///self.detectedMessages.append(message!)
-                            
                             if let message = message {
                                 let record = message.records[0]
                                 print("\t\t\tidentifier: \(String(data: record.identifier, encoding: .utf8))")
@@ -270,11 +255,6 @@ extension ViewController: NFCNDEFReaderSessionDelegate {
     // MARK: - addMessage(fromUserActivity:)
 
     func addMessage(fromUserActivity message: NFCNDEFMessage) {
-        /*
-        DispatchQueue.main.async {
-            self.detectedMessages.append(message)
-        }
-         */
     }
     
 }
@@ -331,7 +311,7 @@ extension ViewController: AVCaptureMetadataOutputObjectsDelegate {
             captureSession.addOutput(metadataOutput)
 
             metadataOutput.setMetadataObjectsDelegate(self, queue: DispatchQueue.main)
-            metadataOutput.metadataObjectTypes = [.code128, .ean8, .ean13,]
+            metadataOutput.metadataObjectTypes = [.code128, .ean8, .ean13, .qr]
         } else {
             failed()
             return
