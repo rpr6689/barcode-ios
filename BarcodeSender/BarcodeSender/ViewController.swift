@@ -20,7 +20,7 @@ class ViewController: UIViewController {
     var previewLayer: AVCaptureVideoPreviewLayer!
     
     var connection: NWConnection?
-    var hostUDP: NWEndpoint.Host = "10.0.0.5"
+    var hostUDP: NWEndpoint.Host = "192.168.1.37"
     var portUDP: NWEndpoint.Port = 4445
 
     override func viewDidLoad() {
@@ -86,6 +86,7 @@ class ViewController: UIViewController {
     }
 
     func sendUDP(_ content: String) {
+        print("Sending \(content)")
         let contentToSendUDP = content.data(using: String.Encoding.utf8)
         self.connection?.send(content: contentToSendUDP, completion: NWConnection.SendCompletion.contentProcessed(({ (NWError) in
             if (NWError == nil) {
