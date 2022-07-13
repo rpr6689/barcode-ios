@@ -7,8 +7,14 @@
 
 import UIKit
 import Network
+import AVFoundation
 
 class ViewController: UIViewController {
+    
+    
+    @IBOutlet weak var connectButton: UIButton!
+    @IBOutlet weak var scanButton: UIButton!
+    @IBOutlet weak var disconnectButton: UIButton!
     
     var connection: NWConnection?
     //var hostUDP: NWEndpoint.Host = "localhost"
@@ -22,13 +28,32 @@ class ViewController: UIViewController {
         while(x < 1000000000) {
             x += 1
         }
-        connectToUDP(hostUDP, portUDP)
     }
 
     
+    @IBAction func onConnectClick(_ sender: Any) {
+        //TODO: handle nfc, set host, then enable scanning
+        connectToUDP(hostUDP, portUDP)
+        self.connectButton.isEnabled = false
+        self.scanButton.isEnabled = true
+        self.disconnectButton.isEnabled = true
+    }
+    
+    @IBAction func onScanClick(_ sender: Any) {
+        //TODO: handle scan here
+        
+        //TODO: after scan
+        //self.sendUDP(messageToUDP)
+    }
+    
+    @IBAction func onDisconnectClick(_ sender: Any) {
+        self.connectButton.isEnabled = true
+        self.scanButton.isEnabled = false
+        self.disconnectButton.isEnabled = false
+        self.connection?.cancel()
+    }
+    
     func connectToUDP(_ hostUDP: NWEndpoint.Host, _ portUDP: NWEndpoint.Port) {
-        // Transmited message:
-        let messageToUDP = "Test message"
 
         self.connection = NWConnection(host: hostUDP, port: portUDP, using: .udp)
 
@@ -37,8 +62,6 @@ class ViewController: UIViewController {
             switch (newState) {
                 case .ready:
                     print("State: Ready\n")
-                    self.sendUDP(messageToUDP)
-                    //self.receiveUDP()
                 case .setup:
                     print("State: Setup\n")
                 case .cancelled:

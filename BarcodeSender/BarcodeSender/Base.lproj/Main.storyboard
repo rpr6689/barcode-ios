@@ -1,24 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13122.16" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="20037" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13104.12"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="20020"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
-                <viewController id="BYZ-38-t0r" customClass="ViewController" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="BarcodeSender" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <color key="backgroundColor" xcode11CocoaTouchSystemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="v9R-3i-riA">
+                                <rect key="frame" x="82" y="105" width="250" height="31"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="250" id="rw0-ml-Qa2"/>
+                                </constraints>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Connect to Workstation"/>
+                                <connections>
+                                    <action selector="onConnectClick:" destination="BYZ-38-t0r" eventType="touchUpInside" id="deK-45-GpB"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="btV-OP-UBf">
+                                <rect key="frame" x="82" y="217" width="250" height="31"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Scan"/>
+                                <connections>
+                                    <action selector="onScanClick:" destination="BYZ-38-t0r" eventType="touchUpInside" id="SfF-C2-h48"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RN6-CV-acE">
+                                <rect key="frame" x="82" y="333" width="250" height="31"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Disconnect from Workstation"/>
+                                <connections>
+                                    <action selector="onDisconnectClick:" destination="BYZ-38-t0r" eventType="touchUpInside" id="l6c-GH-g3u"/>
+                                </connections>
+                            </button>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="RN6-CV-acE" firstAttribute="top" secondItem="btV-OP-UBf" secondAttribute="bottom" constant="85" id="9Sx-4v-fAQ"/>
+                            <constraint firstItem="btV-OP-UBf" firstAttribute="top" secondItem="v9R-3i-riA" secondAttribute="bottom" constant="81" id="Ixo-dl-vfE"/>
+                            <constraint firstItem="btV-OP-UBf" firstAttribute="leading" secondItem="v9R-3i-riA" secondAttribute="leading" id="V69-xU-cyu"/>
+                            <constraint firstItem="v9R-3i-riA" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="61" id="X2U-p9-WJV"/>
+                            <constraint firstItem="v9R-3i-riA" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="cqr-EX-6dV"/>
+                            <constraint firstItem="v9R-3i-riA" firstAttribute="width" secondItem="btV-OP-UBf" secondAttribute="width" id="kPv-oB-p9b"/>
+                            <constraint firstItem="btV-OP-UBf" firstAttribute="leading" secondItem="RN6-CV-acE" secondAttribute="leading" id="mbj-pa-SVd"/>
+                            <constraint firstItem="btV-OP-UBf" firstAttribute="width" secondItem="RN6-CV-acE" secondAttribute="width" id="yBv-Dd-qcq"/>
+                        </constraints>
                     </view>
+                    <connections>
+                        <outlet property="connectButton" destination="v9R-3i-riA" id="53k-ru-IUM"/>
+                        <outlet property="disconnectButton" destination="RN6-CV-acE" id="J2f-g3-SyT"/>
+                        <outlet property="scanButton" destination="btV-OP-UBf" id="3Cf-Im-zVJ"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="113.04347826086958" y="97.767857142857139"/>
         </scene>
     </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
 </document>
